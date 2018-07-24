@@ -137,7 +137,6 @@ class TaxonomyManagerForm extends FormBase {
         'event' => 'change',
       ],
     ];
-    //dump($form);
     return $form;
   }
 

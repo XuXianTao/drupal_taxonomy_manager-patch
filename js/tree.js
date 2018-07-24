@@ -9,8 +9,43 @@
       var treeSettings = settings.taxonomy_manager.tree || [];
       if (treeSettings instanceof Array) {
         for (var i = 0; i < treeSettings.length; i++) {
+            //---------------PATCHED----------------
+            var p_gid = treeSettings[i].p_gid;  // 当前平台编号group_id
+            var p_mod = treeSettings[i].p_mod;  // 当前选择模块module
+            var tmp_source = treeSettings[i].source;
+            var key_old_data = tmp_source.length;
+            if (!key_old_data) continue;
+            for (var j = 0; j < tmp_source.length; j++) {
+                /*
+                 * 只需要去掉后面遗留部分即可
+                 */
+                //不在同一平台的去掉
+                if (tmp_source[j]['gid'] !== p_gid) {
+                    tmp_source.splice(j, tmp_source.length - j);
+                    break;
+                }
+                //不在当前分类的去掉
+                else if (p_mod !== 'All' && tmp_source[j]['mod'] !== p_mod) {
+                    tmp_source.splice(j, tmp_source.length - j);
+                    break;
+                }
+                //重复的去掉
+                else {
+                    var found_repeat = false;
+                    for (var h = j-1; h >= 0; h--) {
+                        if (tmp_source[h]['key'] === tmp_source[j]['key']) {
+                            tmp_source.splice(j, tmp_source.length - j);
+                            found_repeat =true;
+                            break;
+                        }
+                    }
+                    if (found_repeat) break;
+                }
+            }
+            //--------------------------------------
           $('#' + treeSettings[i].id).once('taxonomy-manager-tree').each(function () {
-            new Drupal.TaxonomyManagerFancyTree(treeSettings[i].id, treeSettings[i].name, treeSettings[i].source);
+              //--------------PATCHED treeSettings[i].source TO tmp_source-------
+            new Drupal.TaxonomyManagerFancyTree(treeSettings[i].id, treeSettings[i].name, tmp_source);
           });
         }
       }

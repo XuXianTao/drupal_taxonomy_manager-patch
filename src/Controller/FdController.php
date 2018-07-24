@@ -2,6 +2,12 @@
 
 namespace Drupal\taxonomy_manager\Controller;
 
+use Drupal\Console\Core\Command\CompleteCommand;
+use Drupal\Console\Utils\Create\CommentData;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\AppendCommand;
+use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\taxonomy\Entity\Term;
@@ -102,6 +108,6 @@ class FdController extends ControllerBase
 
     public function filterCallback(&$form, FormStateInterface &$form_state)
     {
-        return $form;
+        return $form['taxonomy']['manager']['tree'];
     }
 }

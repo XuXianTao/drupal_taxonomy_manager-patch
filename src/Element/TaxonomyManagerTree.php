@@ -41,6 +41,23 @@ class TaxonomyManagerTree extends FormElement {
       $terms = TaxonomyManagerTree::loadTerms($taxonomy_vocabulary, 0, $pager_size);
       $list = TaxonomyManagerTree::getNestedListJsonArray($terms);
 
+      //---------------------PATCHED----------------------------------
+      $p_gid = $form_state->getValue('group_id');
+      $p_mod = $form_state->getValue('module');
+      foreach($list as $k => $item) {
+          $item_gid = $terms[$item['key']]->getTypedData()->getProperties()['group_id']->getString();
+          $item_mod = $terms[$item['key']]->getTypedData()->getProperties()['module']->getString();
+          if ($item_gid!=$p_gid) {
+              unset($list[$k]);
+          } elseif ($p_mod!='All' && $item_mod!=$p_mod) {
+              unset($list[$k]);
+          } else {
+              $list[$k]['title'] .= '<font color="darkred"> [' . $item_mod . ']</font>';
+          }
+      }
+      //重排key值，否则会无效
+      $list = array_values($list);
+      //--------------------------------------------------------------
       // Expand tree to given terms.
       if (isset($element['#terms_to_expand'])) {
         $terms_to_expand = is_array($element['#terms_to_expand']) ? $element['#terms_to_expand'] : [$element['#terms_to_expand']];
@@ -48,19 +65,22 @@ class TaxonomyManagerTree extends FormElement {
           TaxonomyManagerTree:self::getFirstPath($term_to_expand, $list);
         }
       }
-
       $element['#attached']['library'][] = 'taxonomy_manager/tree';
       $element['#attached']['drupalSettings']['taxonomy_manager']['tree'][] = [
         'id' => $element['#id'],
         'name' => $element['#name'],
+          //-----------------PATCHEED------------
+        'p_gid' => $p_gid,
+        'p_mod' => $p_mod,
+          //-------------------------------------
         'source' => $list,
       ];
 
       $element['tree'] = [];
       $element['tree']['#prefix'] = '<div id="' . $element['#id'] . '">';
       $element['tree']['#suffix'] = '</div>';
-    }
 
+    }
     return $element;
   }
 
@@ -70,6 +90,7 @@ class TaxonomyManagerTree extends FormElement {
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
     // Validate that all submitted terms belong to the original vocabulary and
     // are not faked via manual $_POST changes.
+      //dpm($form_state->getBuildInfo(),'buildinfo');
     $selected_terms = [];
     if (is_array($input) && !empty($input)) {
       foreach ($input as $tid) {
@@ -166,11 +187,18 @@ class TaxonomyManagerTree extends FormElement {
     $items = [];
     if (!empty($terms)) {
       foreach ($terms as $term) {
+        //-----------PATCHED---------------
+//        $item = [
+//          'title' => Html::escape($term->getName()),
+//          'key' => $term->id(),
+//        ];
         $item = [
-          'title' => Html::escape($term->getName()),
-          'key' => $term->id(),
+            'title' => Html::escape($term->getName()),
+            'key' => $term->id(),
+            'gid' => $term->getTypedData()->getProperties()['group_id']->getString(),
+            'mod' => $term->getTypedData()->getProperties()['module']->getString(),
         ];
-
+        //---------------------------------
         if (isset($term->children) || TaxonomyManagerTree::getChildCount($term->id()) >= 1) {
           // If the given terms array is nested, directly process the terms.
           if (isset($term->children)) {

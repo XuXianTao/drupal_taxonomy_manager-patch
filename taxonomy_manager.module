@@ -9,8 +9,8 @@
 
 use Drupal\Core\Field\BaseFieldDefinition;
 
-define(FD_TABLE, 'fd_category');
-
+define('FD_TABLE', 'fd_category');
+define('FD_DATA_ID', 'taxonomy-manager-data-form');
 /**
  * Implements hook_admin_menu_map().
  */
@@ -124,21 +124,51 @@ function taxonomy_manager_form_alter(&$form, \Drupal\Core\Form\FormStateInterfac
     if ($form_id == 'taxonomy_manager.vocabulary_terms_form') {
         $vocabulary_id = $form['voc']['#value']->id();
         $taxonomy_term = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($vocabulary_id);
+        /*
+         * 整理出选项内容
+         */
         $group_ids = [];
+        $modules =['All'];
         foreach($taxonomy_term as $term) {
             array_push($group_ids, $term->group_id);
+            array_push($modules, $term->module);
         };
         $group_ids = array_unique($group_ids);
         sort($group_ids);
         $group_ids = array_combine($group_ids, $group_ids);
+
+        $modules = array_unique($modules);
+        sort($modules);
+        $modules = array_combine($modules, $modules);
+
         // Add filter
-        $filter['filter'] = [
+        $filter['group_id'] = [
             '#type' => 'select',
             '#title' => t('Group ID'),
             '#options' => $group_ids,
+            '#default_value' => array_values($group_ids)[0],
+            '#size' => '5',
             '#prefix' => '<div class="taxonomy-manager-filter">',
-            '#suffix' => '</div>'
+            '#suffix' => '</div>',
+            '#ajax' => [
+                'callback' => 'Drupal\taxonomy_manager\Controller\FdController::filterCallback',
+                'wrapper' => FD_DATA_ID
+            ]
         ];
-        $form['toolbar'] = array_merge($filter, $form['toolbar']);
+        $filter['module'] =[
+            '#type' => 'select',
+            '#title' => t('module'),
+            '#options' => $modules,
+            '#default_value' => array_values($modules)[0],
+            '#size' => '5',
+            '#prefix' => '<div class="taxonomy-manager-filter">',
+            '#suffix' => '</div>',
+            '#ajax' => [
+                'callback' => 'Drupal\taxonomy_manager\Controller\FdController::filterCallback',
+                'wrapper' => FD_DATA_ID
+            ]
+        ];
+        $form['toolbar'] = array_merge($form['toolbar'], $filter);
+        $form['taxonomy']['manager']['tree']['#id'] = FD_DATA_ID;
     }
 }
