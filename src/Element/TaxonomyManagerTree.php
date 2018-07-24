@@ -38,7 +38,9 @@ class TaxonomyManagerTree extends FormElement {
     if (!empty($element['#vocabulary'])) {
       $taxonomy_vocabulary = \Drupal::entityTypeManager()->getStorage('taxonomy_vocabulary')->load($element['#vocabulary']);
       $pager_size = isset($element['#pager_size']) ? $element['#pager_size'] : -1;
-      $terms = TaxonomyManagerTree::loadTerms($taxonomy_vocabulary, 0, $pager_size);
+      //-------PATCHED with one more parameter $form_state------------
+      $terms = TaxonomyManagerTree::loadTerms($taxonomy_vocabulary, 0, $pager_size, $form_state);
+      //--------------------------------------------------------------
       $list = TaxonomyManagerTree::getNestedListJsonArray($terms);
 
       //---------------------PATCHED----------------------------------
@@ -103,16 +105,25 @@ class TaxonomyManagerTree extends FormElement {
     return $selected_terms;
   }
 
-  /**
+  /**---------------PATCHED with one more parameter $form_state--------------------
    * Load one single level of terms, sorted by weight and alphabet.
    */
-  public static function loadTerms($vocabulary, $parent = 0, $pager_size = -1) {
+  public static function loadTerms($vocabulary, $parent = 0, $pager_size = -1, FormStateInterface &$form_state = null) {
+/*
     try {
       $query = \Drupal::entityQuery('taxonomy_term')
         ->condition('vid', $vocabulary->id())
         ->condition('parent', $parent)
         ->sort('weight')
         ->sort('name');
+        //--------PATCHED-------------
+        if (!empty($form_state)) {
+            $query->condition('group_id', $form_state->getValue('group_id'));
+            if ($form_state->getValue('module') != 'All') {
+                $query->condition('module', $form_state->getValue('module'));
+            }
+        }
+        //----------------------------
       if ($pager_size > 0) {
         $query->pager($pager_size);
       }
@@ -127,7 +138,7 @@ class TaxonomyManagerTree extends FormElement {
       // statement once the taxonomy_manager module only supports Drupal 8.5 or
       // newer.
     }
-
+*/
     $database = \Drupal::database();
     if ($pager_size > 0) {
       $query = $database->select('taxonomy_term_data', 'td')->extend('Drupal\Core\Database\Query\PagerSelectExtender');
@@ -142,6 +153,14 @@ class TaxonomyManagerTree extends FormElement {
     $query->orderBy('tfd.weight');
     $query->orderBy('tfd.name');
 
+      //--------PATCHED-------------
+      if (!empty($form_state)) {
+          $query->condition('tfd.group_id', $form_state->getValue('group_id'));
+          if ($form_state->getValue('module') != 'All') {
+              $query->condition('tfd.module', $form_state->getValue('module'));
+          }
+      }
+      //----------------------------
     if ($pager_size > 0) {
       $query->limit($pager_size);
     }

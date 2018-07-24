@@ -24,7 +24,7 @@ class TaxonomyManagerHelper {
     return empty($term_storage->loadTree($vid));
   }
 
-  /**
+  /**------PATCHED with one one more parameter--------
    * Helper function for mass adding of terms.
    *
    * @param string $input
@@ -43,7 +43,7 @@ class TaxonomyManagerHelper {
    * @return array
    *   An array of the newly inserted term objects
    */
-  public static function massAddTerms($input, $vid, $parents, array &$term_names_too_long = []) {
+  public static function massAddTerms($input, $vid, $parents, array &$term_names_too_long = [], array $gid_mod) {
     $new_terms = [];
     $terms = explode("\n", str_replace("\r", '', $input));
     $parents = count($parents) ? $parents : 0;
@@ -87,6 +87,10 @@ class TaxonomyManagerHelper {
         'vid' => $vid,
         // @todo default language per vocabulary setting?
         'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
+          //--------PATCHED-------------
+          'group_id' => $gid_mod['gid'],
+          'module' => $gid_mod['mod']
+          //----------------------------
       ];
       if (!empty($current_parents)) {
         foreach ($current_parents as $p) {

@@ -212,7 +212,9 @@ class TaxonomyManagerForm extends FormBase {
    * @TODO: redirect to taxonomy manager
    */
   public static function termDataFormSubmit($form, FormStateInterface $form_state) {
-
+      //-------------PATCHED-------------
+      $form_state->setRedirect('taxonomy_manager.admin_vocabulary', ['taxonomy_vocabulary' => $taxonomy_vocabulary->id()]);
+      //---------------------------------
   }
 
   /**

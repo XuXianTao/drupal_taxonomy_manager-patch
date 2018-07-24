@@ -121,7 +121,7 @@ function taxonomy_manager_form_taxonomy_overview_terms_alter(&$form, \Drupal\Cor
  */
 function taxonomy_manager_form_alter(&$form, \Drupal\Core\Form\FormStateInterface &$form_state, &$form_id)
 {
-    if ($form_id == 'taxonomy_manager.vocabulary_terms_form') {
+    if ($form_id == 'taxonomy_manager.vocabulary_terms_form' && !empty($form['toolbar'])) {
         $vocabulary_id = $form['voc']['#value']->id();
         $taxonomy_term = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($vocabulary_id);
         /*

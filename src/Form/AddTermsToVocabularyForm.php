@@ -34,6 +34,21 @@ class AddTermsToVocabularyForm extends FormBase {
       '#markup' => $description,
     ];
 
+      //-------------PATCHED------------------
+      $modules['module'] = [
+          '#type' => 'textfield',
+          '#title' => $this->t('MODULE')
+      ];
+      $group_ids['group_id'] = [
+          '#type' => 'number',
+          '#title' => $this->t('GROUP ID'),
+          '#default_value' => '',
+          '#size' => 5,
+          '#min' => 0
+      ];
+      array_push($form, $group_ids);
+      array_push($form, $modules);
+      //--------------------------------------
     $form['mass_add'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Terms'),
@@ -67,8 +82,11 @@ class AddTermsToVocabularyForm extends FormBase {
     $taxonomy_vocabulary = $form_state->getValue('voc');
     $parents = $form_state->getValue('parents');
     $mass_terms = $form_state->getValue('mass_add');
-
-    $new_terms = TaxonomyManagerHelper::massAddTerms($mass_terms, $taxonomy_vocabulary->id(), $parents, $term_names_too_long);
+    $gid_mod['gid'] = $form_state->getValue('group_id');
+    $gid_mod['mod'] = $form_state->getValue('module');
+    //------PATCHED-----------
+    $new_terms = TaxonomyManagerHelper::massAddTerms($mass_terms, $taxonomy_vocabulary->id(), $parents, $term_names_too_long, $gid_mod);
+    //------------------------
     foreach ($new_terms as $term) {
       $term_names[] = $term->label();
     }
