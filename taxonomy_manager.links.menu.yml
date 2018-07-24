@@ -1,10 +1,15 @@
 taxonomy_manager.admin:
-  title: Taxonomy manager
+  title: Taxonomy manager views
   description: 'Administer vocabularies with the Taxonomy Manager'
   parent: system.admin_structure
   route_name: taxonomy_manager.admin
 taxonomy_manager.settings:
-  title: Taxonomy manager
+  title: Taxonomy manager settings
   description: 'Advanced settings for the Taxonomy Manager'
   parent: system.admin_config_ui
   route_name: taxonomy_manager.settings
+fd_taxonomy_manager.init:
+  title: Fd Taxonomy 初始化
+  description: '从数据表fd_category迁移数据'
+  parent: system.admin_config_ui
+  route_name: fd_taxonomy_manager.init

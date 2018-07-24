@@ -1,5 +1,5 @@
-name: 'Taxonomy Manager'
-description: 'Tool for administrating taxonomy terms.'
+name: 'Fd Taxonomy Manager'
+description: 'Tool for administrating taxonomy terms. <font color="red">***Patched with 2 more fields and fd_category migration.</font>'
 # core: 8.x
 dependencies:
   - drupal:taxonomy

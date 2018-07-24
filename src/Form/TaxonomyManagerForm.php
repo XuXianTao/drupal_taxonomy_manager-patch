@@ -10,6 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Component\Utility\Html;
 use Drupal\taxonomy\VocabularyInterface;
+use Drupal\taxonomy_manager\Element\TaxonomyManagerTree;
 use Drupal\taxonomy_manager\TaxonomyManagerHelper;
 
 /**
@@ -101,7 +102,6 @@ class TaxonomyManagerForm extends FormBase {
         'callback' => '::exportFormCallback',
       ],
     ];
-
     /* Taxonomy manager. */
     $form['taxonomy']['#tree'] = TRUE;
 
@@ -137,7 +137,7 @@ class TaxonomyManagerForm extends FormBase {
         'event' => 'change',
       ],
     ];
-
+    //dump($form);
     return $form;
   }
 

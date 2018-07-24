@@ -7,6 +7,10 @@
  * Administration interface for managing taxonomy vocabularies.
  */
 
+use Drupal\Core\Field\BaseFieldDefinition;
+
+define(FD_TABLE, 'fd_category');
+
 /**
  * Implements hook_admin_menu_map().
  */
@@ -28,11 +32,113 @@ function taxonomy_manager_admin_menu_map() {
  */
 function taxonomy_manager_help($path, $arg) {
   switch ($path) {
-    case 'admin/help#taxonomy_manager':
-      $output = t("The Taxonomy Manager provides an additional interface for managing vocabularies of the taxonomy module. It's especially very useful for long sets of terms.
+    case 'help.page.taxonomy_manager':
+      $output = t("<p>The Taxonomy Manager provides an additional interface for managing vocabularies of the taxonomy module. It's especially very useful for long sets of terms.
                    The vocabulary is represented in a dynamic tree view.
                    It supports operation like mass adding and deleting of terms, fast weight editing, moving of terms in hierarchies, merging of terms and fast term data editing.
-                   For more information on how to use please read the readme file included in the taxonomy_manager directory.");
+                   For more information on how to use please read the readme file included in the taxonomy_manager directory.</p>");
+      $output .= t('<p><i>在原有 Taxonomy Manager基础上为分类添加`group_id` `module`字段，以`group_id`过滤显示结果</i></p>');
       return $output;
   }
+}
+/////////////////////////////////////PATCHED PART
+/**
+ * 分类Entity添加字段
+ * hook_entity_base_field_info
+ */
+function taxonomy_manager_entity_base_field_info($entity_type)
+{
+    if ($entity_type->id() == 'taxonomy_term') {
+        $fields = [];
+        $fields['group_id'] = BaseFieldDefinition::create('integer')
+            ->setLabel(t('平台编号'))
+            ->setDescription(t('Group ID:所属平台编号'))
+            ->setDisplayOptions('form', [
+                'type' => 'string_textfield',
+                'weight' => 4,
+            ])
+            ->setDisplayConfigurable('form', TRUE)
+            ->setDisplayConfigurable('view', TRUE);
+        $fields['module'] = BaseFieldDefinition::create('string')
+            ->setLabel(t('内容分类'))
+            ->setDescription(t('module:所属的类型-article/media/question'))
+            ->setSettings([
+                'max_length' => 50,
+                'text_processing' => 0,
+            ])
+            ->setDisplayOptions('form', [
+                'type' => 'string_textfield',
+                'weight' => 4,
+            ])
+            ->setDisplayConfigurable('form', TRUE)
+            ->setDisplayConfigurable('view', TRUE);
+        return $fields;
+    }
+}
+
+/**
+ * 分类显示添加字段
+ * hook_form_FORM_ID_alter
+ */
+function taxonomy_manager_form_taxonomy_overview_terms_alter(&$form, \Drupal\Core\Form\FormStateInterface &$form_state, &$form_id)
+{
+    $vocabulary_id = $form_state->getStorage()['taxonomy']['vocabulary']->id();
+    $taxonomy_term = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($vocabulary_id);
+    $header = [
+        'group_id' => t('Group ID'),
+        'module' => t('Module')
+    ];
+    $form['terms']['#header'] = array_merge($form['terms']['#header'], $header);
+    foreach ($form['terms'] as $k_form => $item_form) {
+        if (preg_match("/^tid:(\d+):(\d+)$/", $k_form)) {
+            $item_data = [];
+            foreach($taxonomy_term as $k_tax => $item_tax) {
+                if ($item_tax->tid == $item_form['#term']->id()) {
+                    $item_data = [
+                        'group_id' => [
+                            '#type' => 'item',
+                            '#title' => $item_tax->group_id
+                        ],
+                        'module' => [
+                            '#type' => 'item',
+                            '#title' => $item_tax->module
+                        ]
+                    ];
+                    break;
+                }
+            }
+            $form['terms'][$k_form] = array_merge($form['terms'][$k_form], $item_data);
+        }
+    }
+    return $form;
+}
+
+/**
+ * 修改Taxonomy Manager Form显示样式
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function taxonomy_manager_form_alter(&$form, \Drupal\Core\Form\FormStateInterface &$form_state, &$form_id)
+{
+    if ($form_id == 'taxonomy_manager.vocabulary_terms_form') {
+        $vocabulary_id = $form['voc']['#value']->id();
+        $taxonomy_term = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($vocabulary_id);
+        $group_ids = [];
+        foreach($taxonomy_term as $term) {
+            array_push($group_ids, $term->group_id);
+        };
+        $group_ids = array_unique($group_ids);
+        sort($group_ids);
+        $group_ids = array_combine($group_ids, $group_ids);
+        // Add filter
+        $filter['filter'] = [
+            '#type' => 'select',
+            '#title' => t('Group ID'),
+            '#options' => $group_ids,
+            '#prefix' => '<div class="taxonomy-manager-filter">',
+            '#suffix' => '</div>'
+        ];
+        $form['toolbar'] = array_merge($filter, $form['toolbar']);
+    }
 }

@@ -20,3 +20,7 @@
 .taxonomy-managervocabulary-terms-form #edit-move {
   display: none;
 }
+
+.taxonomy-manager-filter {
+  display: inline-block;
+}
