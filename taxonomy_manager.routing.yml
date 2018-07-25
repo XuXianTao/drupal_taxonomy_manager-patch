@@ -63,7 +63,7 @@ taxonomy_manager.admin_vocabulary.move:
     _permission: 'administer taxonomy'
 
 fd_taxonomy_manager.init:
-  path: '/admin/config/user-interface/fd_taxonomy_manager-init'
+  path: '/admin/config/user-interface/fd-taxonomy-manager-init'
   defaults:
     _title: '表`fd_category`数据迁移'
     _form: '\Drupal\taxonomy_manager\Form\FdSettingForm'

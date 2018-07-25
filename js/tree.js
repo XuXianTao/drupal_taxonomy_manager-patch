@@ -20,7 +20,7 @@
                  * 只需要去掉后面遗留部分即可
                  */
                 //不在同一平台的去掉
-                if (tmp_source[j]['gid'] !== p_gid) {
+               if (tmp_source[j]['gid'] !== p_gid) {
                     tmp_source.splice(j, tmp_source.length - j);
                     break;
                 }

@@ -68,6 +68,7 @@ class TaxonomyManagerTree extends FormElement {
         }
       }
       $element['#attached']['library'][] = 'taxonomy_manager/tree';
+
       $element['#attached']['drupalSettings']['taxonomy_manager']['tree'][] = [
         'id' => $element['#id'],
         'name' => $element['#name'],
@@ -226,7 +227,8 @@ class TaxonomyManagerTree extends FormElement {
           // It the term has children, but they are not present in the array,
           // mark the item for lazy loading.
           else {
-            $item['lazy'] = TRUE;
+            //$item['lazy'] = TRUE;
+              $item['lazy'] = FALSE;
           }
         }
         $items[] = $item;
